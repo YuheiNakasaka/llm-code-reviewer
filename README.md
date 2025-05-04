@@ -63,7 +63,7 @@ files=$(curl -s -H "Authorization: token $GITHUB_TOKEN" $files_api)
     fi
     echo
   done
-} > ~/Desktop/code_review_tmp/pr_content.md
+} > pr_content.md
 '
 ```
 
