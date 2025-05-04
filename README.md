@@ -81,7 +81,7 @@ files=$(curl -s -H "Authorization: token $GITHUB_TOKEN" $files_api)
 ```markdown
 # 要求
 - あなたはこれからコードレビューを行う必要があります。
-- `code_review_guide.md`にコードレビューガイドラインがあります。このドキュメントを基にしてコードレビューを行わなければなりません。
+- `general_code_review_guide.md`と`rails_specific_code_review_guide.md`にコードレビューガイドラインがあります。このドキュメントを基にしてコードレビューを行ってください。
 
 # 対象のリポジトリ
 - `/Users/example/dev/hoge_repo`にあります
@@ -98,3 +98,8 @@ files=$(curl -s -H "Authorization: token $GITHUB_TOKEN" $files_api)
 - attempt_completionを使ってください。
 - PRのレビュー結果はmarkdown形式でまとめてください。もし特にレビューに引っかかる点がなければLGTMと返してください。
 ```
+
+#### 注意
+- ClineやCursor Agentでファイルを読み込む際にコーディングエージェント側で一度に読み込みできるファイル行数を制限している場合があるので、その場合は制限を外してください。
+- PRが大きい場合はコンテキストウィンドウが大きい`gemini-2.5-pro-preview-03-25`を使うとレビュー結果の精度が高くなります。
+  - **そもそも大きいPRを作るのは避けるべきです**
