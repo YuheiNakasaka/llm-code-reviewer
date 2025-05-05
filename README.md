@@ -22,54 +22,13 @@ cd llm-code-reviewer
 ### 2. PR内容の取得
 
 #### 事前準備
-- git/jq/curl/mkdirの実行できる環境
-- `PR_URL`が適切にセットされていること
-- `GITHUB_TOKEN`が適切にセットされていること
+- rubyが実行できる環境(Ruby 3.3.1で動作確認済み)
+- ghコマンドが実行できる環境
 
 #### 実行
 ```sh
-PR_URL="https://github.com/owner/repo/pull/123" \
-GITHUB_TOKEN="your_token" \
-bash -c '
-set -e
-owner=$(echo $PR_URL | awk -F/ "{print \$4}")
-repo=$(echo $PR_URL | awk -F/ "{print \$5}")
-pr_number=$(echo $PR_URL | awk -F/ "{print \$7}")
-mkdir -p ~/Desktop/code_review_tmp
-pr_api="https://api.github.com/repos/$owner/$repo/pulls/$pr_number"
-files_api="https://api.github.com/repos/$owner/$repo/pulls/$pr_number/files"
-pr=$(curl -s -H "Authorization: token $GITHUB_TOKEN" $pr_api)
-files=$(curl -s -H "Authorization: token $GITHUB_TOKEN" $files_api)
-{
-  echo "# $(echo "$pr" | jq -r .title)"
-  echo
-  echo "- 作成者: @$(echo "$pr" | jq -r .user.login)"
-  echo "- 変更ファイル数: $(echo "$pr" | jq -r .changed_files)"
-  echo "- [PRリンク]($PR_URL)"
-  echo
-  echo "## PR本文"
-  echo
-  body=$(echo "$pr" | jq -r .body)
-  [ "$body" = "null" ] && echo "(本文なし)" || echo "$body"
-  echo
-  echo "## 変更ファイル一覧"
-  echo
-  echo "$files" | jq -c ".[]" | while read -r file; do
-    filename=$(echo "$file" | jq -r .filename)
-    patch=$(echo "$file" | jq -r .patch)
-    echo "### \`$filename\`"
-    echo
-    if [ "$patch" != "null" ]; then
-      echo "\`\`\`diff"
-      echo "$patch"
-      echo "\`\`\`"
-    else
-      echo "_バイナリファイルまたはdiffなし_"
-    fi
-    echo
-  done
-} > pr_content.md
-'
+# 例: ruby init_pr_content.rb https://github.com/owner/repo/pull/123
+ruby init_pr_content.rb <PR URL>
 ```
 
 ### 3. コードレビューの実行
@@ -89,23 +48,25 @@ files=$(curl -s -H "Authorization: token $GITHUB_TOKEN" $files_api)
 - `general_code_review_guide.md`と`rails_specific_code_review_guide.md`にコードレビューガイドラインがあります。このドキュメントを基にしてコードレビューを行ってください。
 
 # 対象のリポジトリ
-- `/Users/example/dev/hoge_repo`にあります
+- `/Users/example/dev/hoge_repo`
 
-# コードレビュー時の注意
-- コードレビューを行う際には`reviewer_personality.md`に記載されている人格になりきってください振る舞わなければなりません。
+# PRの内容
+- `pr_content.md`に対象のPRの内容が記載されています。
+
+# コードレビュー時に絶対に守るべき事
+- コードレビューを行う際には`general_code_review_guide.md`と`rails_specific_code_review_guide.md`に記載されているコードレビューガイドラインに常に従ってください。
+- コードレビューを行う際には`reviewer_personality.md`に記載されている人格に徹底的になりきって振る舞わなければなりません。
 - 良い点や適切であるコードに対してはレビューコメントを残してはいけません。
 - 修正すべき点や気になる点がある箇所をなんとしてでも見つけ出して必ずレビューコメントを残さなければなりません。
-
-# コードレビューの実行
-- `pr_content.md`に対象のPRの内容が記載されています。
-- コードレビューは漏れを徹底的に無くすために3回行ってください
+- コードレビューは対象のリポジトリ全体を考慮して行わないといけません。
 
 # レビュー結果の出力
-- attempt_completionを使ってください。
-- PRのレビュー結果はmarkdown形式でまとめてください。もし特にレビューに引っかかる点がなければLGTMと返してください。
+- PRのレビュー結果はmarkdown形式でまとめて`review_results/`に`<repository_name>_<PRのID>.md`をファイル名にして出力してください。
 ```
+
+`review_results/`にレビュー結果が出力されます。
 
 #### 注意
 - ClineやCursor Agentでファイルを読み込む際にコーディングエージェント側で一度に読み込みできるファイル行数を制限している場合があるので、その場合は制限を外してください。
 - PRが大きい場合はコンテキストウィンドウが大きい`gemini-2.5-pro-preview-03-25`を使うとレビュー結果の精度が高くなります。
-  - **そもそも大きいPRを作るのは避けるべきです**
+  - **そもそも大きいPRを作るのは避けるべき**
