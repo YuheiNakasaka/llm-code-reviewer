@@ -56,7 +56,7 @@
 
 ## 3. レビューの観点
 
-レビューの具体的な観点については、`.review/resources/code_review_guide.md`に従います。
+レビューの具体的な観点については、`general_code_review_guide.md`と`rails_specific_code_review_guide.md`に従います。
 
 ## 4. レビュープロセス
 
